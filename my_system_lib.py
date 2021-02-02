@@ -46,33 +46,26 @@ class Net(torch.nn.Module):
 class Suiron:
     CAP_CHANNEL         =   0     #   0か1にしてください
     IS_CAP_INIT         =   0
-    WINDOW_WIDTH        =   720
-    WINDOW_HEIGHT       =   480
-    FRAME_WIDTH         =   300
-    FRAME_HEIGHT        =   300
+    WINDOW_WIDTH        =   1920
+    WINDOW_HEIGHT       =   1080
+    FRAME_WIDTH         =   600
+    FRAME_HEIGHT        =   600
     x                   =   100
     y                   =   100
     CASCADEPATH         =   "haarcascades/haarcascade_frontalface_default.xml"
     MOJI_OOKISA         =   1.0
     # ---------- 学習の時と同じパラメータでなければならない ---------- #
     inputSize           =   160
-    model               =   Net(num=26,inputSize=inputSize,Neuron=320)
-    PATH                =   "models/26classes.pt"
+    model               =   Net(num=29,inputSize=inputSize,Neuron=320)
+    PATH                =   "models/29classes.pt"
     BODY_TEMP           =   36.5
     BODY_TEMP_SAFE      =   (255,0,0)
     BODY_TEMP_OUT       =   (255,0,255)
     COLOR               =   BODY_TEMP_SAFE
-
-    CNT_ANDO            =   0
-    CNT_HIGASHI         =   0
-    CNT_KATAOKA         =   0
-    CNT_KODAMA          =   0
-    CNT_MASUDA          =   0
-    CNT_SUETOMO         =   0
     CNT                 =   0
 
     DELAY_MSEC          =   1
-    CNT_MAX             =   10
+    CNT_MAX             =   50
     PROGRESS_BAR_LEN    =   100
 
     NAME = [
@@ -85,6 +78,7 @@ class Suiron:
         "kodama",
         "masuda",
         "matsuzaki",
+        "matui",
         "miyatake",
         "mizuki",
         "nagao",
@@ -93,10 +87,11 @@ class Suiron:
         "ryuuga",
         "shinohara",
         "soushi",
-        "suetomo",
         "takemoto",
         "tamejima",
         "teppei",
+        "toriyabe",
+        "tsuchiyama",
         "uemura",
         "wada",
         "watanabe",
@@ -106,6 +101,10 @@ class Suiron:
     ListCNT = [
         [] for i in NAME
     ]
+    notFirst = 0
+    name = "-------"
+    p = 0
+    percent = 0
 
     def __init__(self):
         self.cap = cv2.VideoCapture(self.CAP_CHANNEL)
@@ -159,11 +158,12 @@ class Suiron:
                 str_y,percent,ld = self.maesyori_suiron(imgTrim,self.inputSize)
 
                 cv2.rectangle(img,(self.x,self.y),(self.x+self.FRAME_WIDTH,self.y+self.FRAME_HEIGHT),self.COLOR,thickness=10)
-                cv2.putText(img, str_y+" "+str(percent)+"%", (40, 40), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
-                cv2.putText(img,"Body TEMP",(40,40*2),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
-                cv2.putText(img,str(self.BODY_TEMP),(40,40*3),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
-
-
+                # cv2.putText(img, str_y+" "+str(percent)+"%", (40, 40), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
+                if self.notFirst == 1:
+                    cv2.putText(img, self.name+" "+str(self.percent)+"%", (40, 40), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
+                    cv2.putText(img,"Body TEMP",(40,40*2),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
+                    cv2.putText(img,str(self.BODY_TEMP),(40,40*3),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
+                
                 cv2.line(
                         img,
                         (self.x+self.FRAME_WIDTH+50,                        int((self.y+self.FRAME_HEIGHT)/2)+40*3),
@@ -175,8 +175,16 @@ class Suiron:
                 #   もし、ldが  "-------"ではないとき
                 if ld != "-------":
                     # print("ok")
+                    self.notFirst = 1
+                    self.p /= self.CNT_MAX 
+                    self.name = ld
+                    self.percent = int(self.p)
+                    if self.percent > 100:
+                        self.percent = 100
                     pass 
                 else:
+                    self.p += percent
+
                     cv2.putText(img,"Please",(self.x+self.FRAME_WIDTH+40,int((self.y+self.FRAME_HEIGHT)/2)+40),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
                     cv2.putText(img,"wait.",(self.x+self.FRAME_WIDTH+40,int((self.y+self.FRAME_HEIGHT)/2)+40*2),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
                     cv2.line(
@@ -203,6 +211,7 @@ class Suiron:
             cv2.imshow("Image",img)
             cv2.waitKey(self.DELAY_MSEC)
             return str_y
+
             
     
     def maesyori_suiron(self,imgCV,imgSize):
@@ -265,3 +274,12 @@ class Suiron:
         cv2.imshow("Thermo sensor",img)
         cv2.waitKey(self.DELAY_MSEC)
         # cv2.moveWindow("Thermo sensor",self.WINDOW_WIDTH,int(self.WINDOW_HEIGHT/2))
+
+
+if __name__ == "__main__":
+    k = Suiron()
+
+    while True:
+        k.real_time_haar()
+
+    
