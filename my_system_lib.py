@@ -87,6 +87,7 @@ class Suiron:
         "ryuuga",
         "shinohara",
         "soushi",
+        "suetomo",
         "takemoto",
         "tamejima",
         "teppei",
@@ -205,6 +206,8 @@ class Suiron:
         else:
             #   もし顔が認識できていなかったらCNTをリセットする
             self.CNT    =   0
+            for i,_ in enumerate(self.ListCNT):
+                self.ListCNT[i] = 0
             str_y = "-------"
             cv2.rectangle(img,(self.x,self.y),(self.x+self.FRAME_WIDTH,self.y+self.FRAME_HEIGHT),self.COLOR,thickness=10)
             cv2.putText(img, "Set Face", (40*2, 40*2), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA*2,self.COLOR,thickness=4)
@@ -261,6 +264,9 @@ class Suiron:
             max_value = max(self.ListCNT)
             max_index = self.ListCNT.index(max_value)
             s = str(self.NAME[max_index])
+
+            if max_value <= 15:
+                s = "guest"
 
             self.CNT = 0
             for i,_ in enumerate(self.ListCNT):
