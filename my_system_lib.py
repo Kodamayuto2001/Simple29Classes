@@ -57,7 +57,7 @@ class Suiron:
     # ---------- 学習の時と同じパラメータでなければならない ---------- #
     inputSize           =   160
     model               =   Net(num=29,inputSize=inputSize,Neuron=320)
-    PATH                =   "models/29classes.pt"
+    PATH                =   "models/29classes_2.pt"
     BODY_TEMP           =   36.5
     BODY_TEMP_SAFE      =   (255,0,0)
     BODY_TEMP_OUT       =   (255,0,255)
@@ -78,7 +78,7 @@ class Suiron:
         "kodama",
         "masuda",
         "matsuzaki",
-        "matui",
+        "matsui",
         "miyatake",
         "mizuki",
         "nagao",
