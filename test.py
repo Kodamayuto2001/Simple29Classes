@@ -3,9 +3,9 @@ import sys
 import cv2
 
 def name():
-    s,name_id = k.real_time_haar()
-    sys.stdout.write("\r {}さんです。".format(s))
-    return s
+    name_id = k.real_time_haar()
+    sys.stdout.write("\r {}さんです。".format(name_id))
+    return name_id
 
 if __name__ == "__main__":
     # 推論クラスのインスタンス化

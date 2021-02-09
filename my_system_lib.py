@@ -203,7 +203,7 @@ class Suiron:
                 else:
                     cv2.waitKey(self.DELAY_MSEC)
 
-                return ld,name_id
+                return name_id
         else:
             #   もし顔が認識できていなかったらCNTをリセットする
             self.CNT    =   0
@@ -261,6 +261,8 @@ class Suiron:
 
         self.CNT += 1
 
+        max_index = -1
+
         if self.CNT == self.CNT_MAX:
             max_value = max(self.ListCNT)
             max_index = self.ListCNT.index(max_value)
@@ -274,7 +276,7 @@ class Suiron:
                 self.ListCNT[i] = 0
 
         # 戻り値は予測値とパーセンテージ,確実な値,予測値
-        return str_y,percent,s,p1
+        return str_y,percent,s,max_index
 
     def imshow(self,path):
         img = cv2.imread(path)
