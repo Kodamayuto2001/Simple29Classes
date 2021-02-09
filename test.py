@@ -3,7 +3,7 @@ import sys
 import cv2
 
 def name():
-    s = k.real_time_haar()
+    s,name_id = k.real_time_haar()
     sys.stdout.write("\r {}さんです。".format(s))
     return s
 

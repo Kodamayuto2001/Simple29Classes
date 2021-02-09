@@ -152,11 +152,12 @@ class Suiron:
         else:
             self.COLOR  =   self.BODY_TEMP_SAFE
 
+        name_id = -1
         if len(facerect) > 0:
             for (x,y,w,h) in facerect:
                 cv2.rectangle(imgResult,(x,y),(x+w,y+h),self.COLOR,thickness=2)
                 imgTrim = img[y:y+h,x:x+w]
-                str_y,percent,ld = self.maesyori_suiron(imgTrim,self.inputSize)
+                str_y,percent,ld,name_id = self.maesyori_suiron(imgTrim,self.inputSize)
 
                 cv2.rectangle(img,(self.x,self.y),(self.x+self.FRAME_WIDTH,self.y+self.FRAME_HEIGHT),self.COLOR,thickness=10)
                 # cv2.putText(img, str_y+" "+str(percent)+"%", (40, 40), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
@@ -202,7 +203,7 @@ class Suiron:
                 else:
                     cv2.waitKey(self.DELAY_MSEC)
 
-                return ld
+                return ld,name_id
         else:
             #   もし顔が認識できていなかったらCNTをリセットする
             self.CNT    =   0
@@ -213,7 +214,7 @@ class Suiron:
             cv2.putText(img, "Set Face", (40*2, 40*2), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA*2,self.COLOR,thickness=4)
             cv2.imshow("Image",img)
             cv2.waitKey(self.DELAY_MSEC)
-            return str_y
+            return str_y,name_id
 
             
     
@@ -272,8 +273,8 @@ class Suiron:
             for i,_ in enumerate(self.ListCNT):
                 self.ListCNT[i] = 0
 
-        # 戻り値は予測値とパーセンテージ,確実な値
-        return str_y,percent,s
+        # 戻り値は予測値とパーセンテージ,確実な値,予測値
+        return str_y,percent,s,p1
 
     def imshow(self,path):
         img = cv2.imread(path)
