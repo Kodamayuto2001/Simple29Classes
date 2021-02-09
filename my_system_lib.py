@@ -46,10 +46,10 @@ class Net(torch.nn.Module):
 class Suiron:
     CAP_CHANNEL         =   0     #   0か1にしてください
     IS_CAP_INIT         =   0
-    WINDOW_WIDTH        =   1920
-    WINDOW_HEIGHT       =   1080
-    FRAME_WIDTH         =   600
-    FRAME_HEIGHT        =   600
+    WINDOW_WIDTH        =   720
+    WINDOW_HEIGHT       =   640
+    FRAME_WIDTH         =   300
+    FRAME_HEIGHT        =   300
     x                   =   100
     y                   =   100
     CASCADEPATH         =   "haarcascades/haarcascade_frontalface_default.xml"
@@ -67,6 +67,8 @@ class Suiron:
     DELAY_MSEC          =   1
     CNT_MAX             =   50
     PROGRESS_BAR_LEN    =   100
+
+    MOJI_HYOUJI         =   "60cm"
 
     NAME = [
         "ando",
@@ -153,6 +155,9 @@ class Suiron:
             self.COLOR  =   self.BODY_TEMP_SAFE
 
         name_id = -1
+
+        cv2.putText(img,self.MOJI_HYOUJI,(self.x+self.FRAME_WIDTH+40,40),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
+
         if len(facerect) > 0:
             for (x,y,w,h) in facerect:
                 cv2.rectangle(imgResult,(x,y),(x+w,y+h),self.COLOR,thickness=2)
@@ -214,7 +219,7 @@ class Suiron:
             cv2.putText(img, "Set Face", (40*2, 40*2), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA*2,self.COLOR,thickness=4)
             cv2.imshow("Image",img)
             cv2.waitKey(self.DELAY_MSEC)
-            return str_y,name_id
+            return name_id
 
             
     
