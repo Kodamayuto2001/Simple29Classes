@@ -46,10 +46,10 @@ class Net(torch.nn.Module):
 class Suiron:
     CAP_CHANNEL         =   0     #   0か1にしてください
     IS_CAP_INIT         =   0
-    WINDOW_WIDTH        =   720
-    WINDOW_HEIGHT       =   640
-    FRAME_WIDTH         =   300
-    FRAME_HEIGHT        =   300
+    WINDOW_WIDTH        =   1920
+    WINDOW_HEIGHT       =   1080
+    FRAME_WIDTH         =   600
+    FRAME_HEIGHT        =   600
     x                   =   100
     y                   =   100
     CASCADEPATH         =   "haarcascades/haarcascade_frontalface_default.xml"
@@ -65,7 +65,7 @@ class Suiron:
     CNT                 =   0
 
     DELAY_MSEC          =   1
-    CNT_MAX             =   50
+    CNT_MAX             =   20
     PROGRESS_BAR_LEN    =   100
 
     MOJI_HYOUJI         =   ""
