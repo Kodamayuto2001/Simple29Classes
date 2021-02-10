@@ -68,7 +68,7 @@ class Suiron:
     CNT_MAX             =   50
     PROGRESS_BAR_LEN    =   100
 
-    MOJI_HYOUJI         =   "60cm"
+    MOJI_HYOUJI         =   ""
 
     NAME = [
         "ando",
