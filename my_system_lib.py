@@ -202,7 +202,7 @@ class Suiron:
             cv2.putText(img, "Set Face", (40*2, 40*2), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA*2,self.COLOR,thickness=4)
             cv2.imshow("Image",img)
             cv2.waitKey(self.DELAY_MSEC)
-            return "-------" 
+            return -1
         pass 
 
     def maesyori_suiron(self,imgCV):
@@ -257,7 +257,7 @@ class Suiron:
 
         self.CNT    += 1    #カウンタをインクリメント
         avg_percent = 0
-        max_label   = 0
+        max_label   = 29
         #   もしカウンタが最大値になったら
         if self.CNT == self.CNT_MAX:
             #   カウンタ初期化
