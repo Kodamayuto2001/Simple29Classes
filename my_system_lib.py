@@ -20,55 +20,43 @@ class Net(torch.nn.Module):
         x = self.fc2(x)
         return F.log_softmax(x,dim=1)
 
-# class KaoSet:
-#     cap_channel         = 0
-#     WINDOW_WIDTH        = 1920
-#     WINDOW_HEIGHT       = 1080
-#     FRAME_WIDTH         = 500
-#     FRAME_HEIGHT        = 500
-#     color               = (255,0,255)
-
-#     def show(self):
-#         cap = cv2.VideoCapture(self.cap_channel)
-#         cap.set(cv2.CAP_PROP_FRAME_WIDTH,   self.WINDOW_WIDTH)
-#         cap.set(cv2.CAP_PROP_FRAME_HEIGHT,  self.WINDOW_HEIGHT)
-#         x   = 100
-#         y   = 100
-#         while True:
-#             success,img = cap.read()
-#             cv2.rectangle(img,(x,y),(x+self.FRAME_WIDTH,y+self.FRAME_HEIGHT),self.color,thickness=10)
-#             cv2.imshow("Image",img)
-#             H,W,C = img.shape
-#             x = int((W - self.FRAME_WIDTH)/2)
-#             y = int((H - self.FRAME_HEIGHT)/2)
-#             cv2.waitKey(100)
 
 class Suiron:
+    r"""
+        real_time_haar関数
+            顔認証機能
+        imshow関数
+            画像の表示
+    """
     CAP_CHANNEL         =   0     #   0か1にしてください
-    IS_CAP_INIT         =   0
     WINDOW_WIDTH        =   1920
     WINDOW_HEIGHT       =   1080
+    CASCADEPATH         =   "haarcascades/haarcascade_frontalface_default.xml"
+    PATH                =   "models/29classes.pt"
+    inputSize           =   160
+    model               =   Net(num=29,inputSize=inputSize,Neuron=320)
+    
+    
+    IS_CAP_INIT         =   0
     FRAME_WIDTH         =   600
     FRAME_HEIGHT        =   600
     x                   =   100
     y                   =   100
-    CASCADEPATH         =   "haarcascades/haarcascade_frontalface_default.xml"
-    MOJI_OOKISA         =   1.0
-    # ---------- 学習の時と同じパラメータでなければならない ---------- #
-    inputSize           =   160
-    model               =   Net(num=29,inputSize=inputSize,Neuron=320)
-    PATH                =   "models/29classes_3.pt"
     BODY_TEMP           =   36.5
     BODY_TEMP_SAFE      =   (255,0,0)
     BODY_TEMP_OUT       =   (255,0,255)
     COLOR               =   BODY_TEMP_SAFE
-    CNT                 =   0
 
-    DELAY_MSEC          =   1
-    CNT_MAX             =   20
-    PROGRESS_BAR_LEN    =   100
+    CNT             =   0
+    CNT_MAX         =   50
+    PROGRESS_BAR_LEN=   100
+    DELAY_MSEC      =   1
 
-    MOJI_HYOUJI         =   ""
+    MOJI_OOKISA         =   1.0
+    percent             =   0
+    name                =   "-------"
+
+    MOJI_HYOUJI         =   "6.0"
 
     NAME = [
         "ando",
@@ -99,17 +87,23 @@ class Suiron:
         "wada",
         "watanabe",
         "yamaji",
-        "yamashita"
+        "yamashita",
+        #   29番目をguestとする
+        "guest"     
     ]
-    ListCNT = [
+
+    list_label = [
         [] for i in NAME
     ]
-    notFirst = 0
-    name = "-------"
-    p = 0
-    percent = 0
+    list_percent = [
+        [] for i in NAME
+    ]
+
+    
 
     def __init__(self):
+        #   カメラの初期設定
+        #   モデルのロード
         self.cap = cv2.VideoCapture(self.CAP_CHANNEL)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH,   self.WINDOW_WIDTH)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT,  self.WINDOW_HEIGHT)
@@ -117,19 +111,20 @@ class Suiron:
         self.model.load_state_dict(torch.load(self.PATH))
         self.model.eval()
 
-        for i,_ in enumerate(self.ListCNT):
-            self.ListCNT[i] = 0
-        
+        for i,_ in enumerate(self.NAME):
+            self.list_label[i] = 0
+            self.list_percent[i] = 0
 
     def __del__(self):
+        #   終了処理
         self.cap.release()
         cv2.destroyAllWindows()
-        
 
     def real_time_haar(self):
+        #   画像を読み込む
         success,img = self.cap.read()
         try:
-            imgGray     = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+            imgGray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         except cv2.error:
             if self.IS_CAP_INIT == 0:
                 self.CAP_CHANNEL    ^=  1
@@ -139,11 +134,14 @@ class Suiron:
             success,img = self.cap.read()
             imgGray     = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
             self.IS_CAP_INIT        =   1
-
         
+
+        #   カスケード分類器で顔を抽出
         imgResult   = img.copy()
         facerect    = self.cascade.detectMultiScale(imgGray,scaleFactor=1.1,minNeighbors=2,minSize=(200,200))
 
+
+        #   顔セット用の正方形を正しい位置にするために必要
         H,W,C = img.shape
         self.x = int((W - self.FRAME_WIDTH)/2)
         self.y = int((H - self.FRAME_HEIGHT)/2)
@@ -154,23 +152,19 @@ class Suiron:
         else:
             self.COLOR  =   self.BODY_TEMP_SAFE
 
-        name_id = -1
-
         cv2.putText(img,self.MOJI_HYOUJI,(self.x+self.FRAME_WIDTH+40,40),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
 
+        cv2.rectangle(img,(self.x,self.y),(self.x+self.FRAME_WIDTH,self.y+self.FRAME_HEIGHT),self.COLOR,thickness=10)
+        #   もし顔と識別できたら
+            #   顔認識機能で誰かを分類する
         if len(facerect) > 0:
             for (x,y,w,h) in facerect:
                 cv2.rectangle(imgResult,(x,y),(x+w,y+h),self.COLOR,thickness=2)
                 imgTrim = img[y:y+h,x:x+w]
-                str_y,percent,ld,name_id = self.maesyori_suiron(imgTrim,self.inputSize)
 
-                cv2.rectangle(img,(self.x,self.y),(self.x+self.FRAME_WIDTH,self.y+self.FRAME_HEIGHT),self.COLOR,thickness=10)
-                # cv2.putText(img, str_y+" "+str(percent)+"%", (40, 40), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
-                if self.notFirst == 1:
-                    cv2.putText(img, self.name+" "+str(self.percent)+"%", (40, 40), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
-                    cv2.putText(img,"Body TEMP",(40,40*2),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
-                    cv2.putText(img,str(self.BODY_TEMP),(40,40*3),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
-                
+                #   ラベル・パーセント・最大ラベル・平均パーセンテージ
+                label,percent,max_label,avg_percent = self.maesyori_suiron(imgTrim)
+
                 cv2.line(
                         img,
                         (self.x+self.FRAME_WIDTH+50,                        int((self.y+self.FRAME_HEIGHT)/2)+40*3),
@@ -178,20 +172,10 @@ class Suiron:
                         (204,204,204),
                         15
                 )
-
-                #   もし、ldが  "-------"ではないとき
-                if ld != "-------":
-                    # print("ok")
-                    self.notFirst = 1
-                    self.p /= self.CNT_MAX 
-                    self.name = ld
-                    self.percent = int(self.p)
-                    if self.percent > 100:
-                        self.percent = 100
-                    pass 
+                if self.CNT == 0:
+                    self.percent    = avg_percent
+                    self.name = str(self.NAME[max_label])
                 else:
-                    self.p += percent
-
                     cv2.putText(img,"Please",(self.x+self.FRAME_WIDTH+40,int((self.y+self.FRAME_HEIGHT)/2)+40),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
                     cv2.putText(img,"wait.",(self.x+self.FRAME_WIDTH+40,int((self.y+self.FRAME_HEIGHT)/2)+40*2),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
                     cv2.line(
@@ -201,37 +185,35 @@ class Suiron:
                         self.COLOR,
                         15
                     )
-
+                cv2.putText(img, self.name+" "+str(self.percent)+"%", (40, 40), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
                 cv2.imshow("Image",img)
-                if self.DELAY_MSEC != 0:
-                    cv2.waitKey(self.DELAY_MSEC)
-                else:
-                    cv2.waitKey(self.DELAY_MSEC)
+                cv2.waitKey(self.DELAY_MSEC)
 
-                return name_id
+                ############  戻り値は識別番号  ############
+                return max_label
+        #   もし顔と識別できていなかったら
         else:
-            #   もし顔が認識できていなかったらCNTをリセットする
-            self.CNT    =   0
-            for i,_ in enumerate(self.ListCNT):
-                self.ListCNT[i] = 0
-            str_y = "-------"
-            cv2.rectangle(img,(self.x,self.y),(self.x+self.FRAME_WIDTH,self.y+self.FRAME_HEIGHT),self.COLOR,thickness=10)
+            #   カウンタ初期化
+            self.CNT = 0
+            #   平均のラベルと平均のパーセントを初期化
+            for i,_ in enumerate(self.NAME):
+                self.list_label[i] = 0
+                self.list_percent[i] = 0
             cv2.putText(img, "Set Face", (40*2, 40*2), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA*2,self.COLOR,thickness=4)
             cv2.imshow("Image",img)
             cv2.waitKey(self.DELAY_MSEC)
-            return name_id
+            return "-------" 
+        pass 
 
-            
-    
-    def maesyori_suiron(self,imgCV,imgSize):
+    def maesyori_suiron(self,imgCV):
         # チャンネル数を１
         imgGray = cv2.cvtColor(imgCV,cv2.COLOR_BGR2GRAY)
         
         #リサイズ
-        img = cv2.resize(imgGray,(imgSize,imgSize))
+        img = cv2.resize(imgGray,(self.inputSize,self.inputSize))
 
         # リシェイプ
-        img = np.reshape(img,(1,imgSize,imgSize))
+        img = np.reshape(img,(1,self.inputSize,self.inputSize))
 
         # transpose h,c,w
         img = np.transpose(img,(1,2,0))
@@ -241,53 +223,64 @@ class Suiron:
         mInput = transforms.ToTensor()(img)  
 
         #推論
-        #print(mInput.size())
         output = self.model(mInput[0])
 
         #予測値
-        # p0 = self.model.forward(mInput)
         p1 = self.model.forward(mInput).exp()
 
         #予測値のパーセンテージ
-        # m = torch.nn.Softmax(dim=1)
-        # x0 = m(p0)
-        # x0 = x0.to('cpu').detach().numpy().copy() 
-        # x0 = x0[0]
-        x1 = p1.to('cpu').detach().numpy().copy() 
+        x1 = p1.to('cpu').detach().numpy().copy()
         x1 = x1[0]
-        # すべての中で最も大きい値
+
+        #予測値のうち最大値を求める
         p1 = p1.argmax().to('cpu').detach().numpy().copy()
-        percent = 0
 
-        str_y = str(self.NAME[p1])
+        #予測最大パーセント
         percent = x1[p1]*100
-        self.ListCNT[p1] += 1
-        s = "-------"
 
-        self.CNT += 1
 
-        max_index = -1
+        label = 0
+        #29人の中で人工知能が最大であると識別したラベルのパーセントpercentが40%以上なら識別できているとする
+        if percent >= 40:
+            label = int(p1)
+            
+        #29人の中で人工知能が最大であると識別したラベルのパーセントpercentが40%未満のなら識別できていないとする
+        else:
+            label   =   29  #   ゲストの識別番号
+            percent =   0   #   ゲストの場合、パーセントを0とする
+            p1      =   29  #   予測値をゲストにする
 
+        #   一定の時間内での平均値を求める。
+        #   最大予測ラベルとラベルに対応するパーセントを格納する
+        self.list_label[p1] += 1
+        self.list_percent[p1] += percent
+
+        self.CNT    += 1    #カウンタをインクリメント
+        avg_percent = 0
+        max_label   = 0
+        #   もしカウンタが最大値になったら
         if self.CNT == self.CNT_MAX:
-            max_value = max(self.ListCNT)
-            max_index = self.ListCNT.index(max_value)
-            s = str(self.NAME[max_index])
-
-            if max_value <= 15:
-                s = "guest"
-
+            #   カウンタ初期化
             self.CNT = 0
-            for i,_ in enumerate(self.ListCNT):
-                self.ListCNT[i] = 0
+            #   最大予測回数
+            max_value = max(self.list_label)
+            #   最大のラベル
+            max_index = self.list_label.index(max_value)
+            #   平均パーセンテージ計算
+            avg_percent = self.list_percent[max_index] / max_value
 
-        # 戻り値は予測値とパーセンテージ,確実な値,予測値
-        return str_y,percent,s,max_index
+            max_label = max_index
+        #   戻り値：
+        #       識別ラベル      ※0番目～29番目の30人(ゲストを含む)
+        #       パーセント      ※ゲストの場合、パーセントを0とする
+        #       平均ラベル      ※確実な識別番号    
+        #       平均パーセント  ※CNT_MAX間での平均求める、ゲストの場合は0となる
+        return label,percent,max_label,avg_percent
 
     def imshow(self,path):
         img = cv2.imread(path)
         cv2.imshow("Thermo sensor",img)
         cv2.waitKey(self.DELAY_MSEC)
-        # cv2.moveWindow("Thermo sensor",self.WINDOW_WIDTH,int(self.WINDOW_HEIGHT/2))
 
 
 if __name__ == "__main__":
@@ -295,5 +288,3 @@ if __name__ == "__main__":
 
     while True:
         k.real_time_haar()
-
-    
