@@ -45,7 +45,7 @@ class Suiron:
     COLOR               =   BODY_TEMP_SAFE
 
     CNT             =   0
-    CNT_MAX         =   50
+    CNT_MAX         =   30
     PROGRESS_BAR_LEN=   100
     DELAY_MSEC      =   1
 
@@ -152,7 +152,8 @@ class Suiron:
 
         cv2.rectangle(img,(self.x,self.y),(self.x+self.FRAME_WIDTH,self.y+self.FRAME_HEIGHT),self.COLOR,thickness=10)
         #   もし顔と識別できたら
-            #   顔認識機能で誰かを分類する
+        #   顔認識機能で誰かを分類する
+        name_id = -1
         if len(facerect) > 0:
             for (x,y,w,h) in facerect:
                 cv2.rectangle(imgResult,(x,y),(x+w,y+h),self.COLOR,thickness=2)
@@ -171,6 +172,7 @@ class Suiron:
                 if self.CNT == 0:
                     self.percent    = avg_percent
                     self.name = str(self.NAME[max_label])
+                    name_id = max_label
                 else:
                     cv2.putText(img,"Please",(self.x+self.FRAME_WIDTH+40,int((self.y+self.FRAME_HEIGHT)/2)+40),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
                     cv2.putText(img,"wait.",(self.x+self.FRAME_WIDTH+40,int((self.y+self.FRAME_HEIGHT)/2)+40*2),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
@@ -188,7 +190,7 @@ class Suiron:
                 cv2.waitKey(self.DELAY_MSEC)
 
                 ############  戻り値は識別番号  ############
-                return max_label
+                return name_id
         #   もし顔と識別できていなかったら
         else:
             #   カウンタ初期化
@@ -200,7 +202,7 @@ class Suiron:
             cv2.putText(img, "Set Face", (40*2, 40*2), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA*2,self.COLOR,thickness=4)
             cv2.imshow("Image",img)
             cv2.waitKey(self.DELAY_MSEC)
-            return -1
+            return name_id
         pass 
 
     def maesyori_suiron(self,imgCV):
