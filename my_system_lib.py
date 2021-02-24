@@ -23,10 +23,8 @@ class Net(torch.nn.Module):
 
 class Suiron:
     r"""
-        real_time_haar関数
-            顔認証機能
-        imshow関数
-            画像の表示
+        顔認証機能
+            real_time_haar関数
     """
     CAP_CHANNEL         =   0     #   0か1にしてください
     WINDOW_WIDTH        =   1920
@@ -35,7 +33,6 @@ class Suiron:
     PATH                =   "models/29classes.pt"
     inputSize           =   160
     model               =   Net(num=29,inputSize=inputSize,Neuron=320)
-    
     
     IS_CAP_INIT         =   0
     FRAME_WIDTH         =   600
@@ -55,7 +52,6 @@ class Suiron:
     MOJI_OOKISA         =   1.0
     percent             =   0
     name                =   "-------"
-
     MOJI_HYOUJI         =   "6.0"
 
     NAME = [
@@ -186,6 +182,8 @@ class Suiron:
                         15
                     )
                 cv2.putText(img, self.name+" "+str(self.percent)+"%", (40, 40), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
+                cv2.putText(img,"Body TEMP",(40,40*2),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
+                    cv2.putText(img,str(self.BODY_TEMP),(40,40*3),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
                 cv2.imshow("Image",img)
                 cv2.waitKey(self.DELAY_MSEC)
 
