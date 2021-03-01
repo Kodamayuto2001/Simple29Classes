@@ -183,7 +183,7 @@ class Suiron:
                         self.COLOR,
                         15
                     )
-                cv2.putText(img, self.name+" "+str(self.percent)+"%", (40, 40), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
+                cv2.putText(img, self.name+" "+str(int(self.percent))+"%", (40, 40), cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
                 cv2.putText(img,"Body TEMP",(40,40*2),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
                 cv2.putText(img,str(self.BODY_TEMP),(40,40*3),cv2.FONT_HERSHEY_SIMPLEX,self.MOJI_OOKISA,self.COLOR,thickness=2)
                 cv2.imshow("Image",img)
